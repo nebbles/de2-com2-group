@@ -1,10 +1,10 @@
 # DE2-COM2 Computing 2 Group Project
 
 *Dr Billy Wu* - Tutor Group:  
-> **Ben Greenberg  
+> **Ben Greenberg (@nebbles)  
 > Kenza Zouitene  
 > Ian Keglar  
-> Bea Lopez  
+> Bea Lopez (@bealln)  
 > Kyle Ruizheng Zeng**
 
 
