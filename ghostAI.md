@@ -13,3 +13,5 @@ We could use the direction of the pacman and use vectors to work out a '*target 
 Another seperate system to getting to the target tile (e.g. the pacman current position) would be to think about the next turning the Ghost needs to take in order to get closer to its target. 
 
 Say the Ghost knows the **delta x** and **delta y** between itself and the pacman then it can prioritise in which axis it needs to make progress. Combine this with the fact the ghost cannot reverse its own direction and then you have a *queue* of different turns the Ghost plans to do to improve its position with relation to the pacman by reducing its delta x and y values.
+
+The above solution can be seen as a 'short-sighted' solution. This is because the Ghost only uses the general direction to help it decipher how it should deal with what is directly in front of it. We can make this more advanced by allowing the Ghost AI to be 'long-sighted' which is that the Ghost plans its entire route ahead of time and updates this route with every iteration to make it more accurate or to correct its route.
