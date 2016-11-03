@@ -10,6 +10,6 @@ The solutions to the problems originally posted at the Pacman project site were 
 
 ### Resources
 
-[Lecture 11: Reinforcement Learning II](https://youtu.be/yNeSFbE1jdY?t=25m41s)
-[UC Berkeley CS188 Intro to AI - Project 3: Reinforcement Learning](http://ai.berkeley.edu/reinforcement.html)
-[Q-learning on Wikipedia](https://en.wikipedia.org/wiki/Q-learning)
+[Lecture 11: Reinforcement Learning II](https://youtu.be/yNeSFbE1jdY?t=25m41s)  
+[UC Berkeley CS188 Intro to AI - Project 3: Reinforcement Learning](http://ai.berkeley.edu/reinforcement.html)  
+[Q-learning on Wikipedia](https://en.wikipedia.org/wiki/Q-learning)  
