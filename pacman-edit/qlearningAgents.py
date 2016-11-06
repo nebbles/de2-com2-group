@@ -11,6 +11,7 @@ from game import Directions, Actions
 import util
 import random,util,math,time
 
+
 class ReinforcementAgent(ValueEstimationAgent):
   """
     Abstract Reinforcemnt Agent: A ValueEstimationAgent
@@ -107,26 +108,6 @@ class ReinforcementAgent(ValueEstimationAgent):
     self.alpha = float(alpha)
     self.discount = float(gamma)
 
-  ################################
-  # Controls needed for Crawler  #
-  ################################
-  def setEpsilon(self, epsilon):
-    self.epsilon = epsilon
-
-  def setLearningRate(self, alpha):
-    self.alpha = alpha
-
-  def setDiscount(self, discount):
-    self.discount = discount
-
-  def doAction(self,state,action):
-    """
-        Called by inherited class when
-        an action is taken in a state
-    """
-    self.lastState = state
-    self.lastAction = action
-
   ###################
   # Pacman Specific #
   ###################
@@ -210,7 +191,6 @@ class QLearningAgent(ReinforcementAgent):
     "You can initialize Q-values here..."
     ReinforcementAgent.__init__(self, **args)
 
-    "*** YOUR CODE HERE ***"
     self.qValues = util.Counter()
     print "ALPHA", self.alpha
     print "DISCOUNT", self.discount
@@ -222,7 +202,6 @@ class QLearningAgent(ReinforcementAgent):
       Should return 0.0 if we never seen
       a state or (state,action) tuple
     """
-    "*** YOUR CODE HERE ***"
     return self.qValues[(state, action)]
 
 
@@ -233,7 +212,6 @@ class QLearningAgent(ReinforcementAgent):
       there are no legal actions, which is the case at the
       terminal state, you should return a value of 0.0.
     """
-    "*** YOUR CODE HERE ***"
     possibleStateQValues = util.Counter()
     for action in self.getLegalActions(state):
     	possibleStateQValues[action] = self.getQValue(state, action)
@@ -246,7 +224,6 @@ class QLearningAgent(ReinforcementAgent):
       are no legal actions, which is the case at the terminal state,
       you should return None.
     """
-    "*** YOUR CODE HERE ***"
     possibleStateQValues = util.Counter()
     possibleActions = self.getLegalActions(state)
     if len(possibleActions) == 0:
@@ -274,7 +251,6 @@ class QLearningAgent(ReinforcementAgent):
     # Pick Action
     legalActions = self.getLegalActions(state)
     action = None
-    "*** YOUR CODE HERE ***"
     if len(legalActions) > 0:
     	if util.flipCoin(self.epsilon):
     		action = random.choice(legalActions)
@@ -292,11 +268,11 @@ class QLearningAgent(ReinforcementAgent):
       NOTE: You should never call this function,
       it will be called on your behalf
     """
-    "*** YOUR CODE HERE ***"
     print "State: ", state, " , Action: ", action, " , NextState: ", nextState, " , Reward: ", reward
     print "QVALUE", self.getQValue(state, action)
     print "VALUE", self.getValue(nextState)
     self.qValues[(state, action)] = self.getQValue(state, action) + self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
+
 
 class PacmanQAgent(QLearningAgent):
   "Exactly the same as QLearningAgent, but with different default parameters"
@@ -307,9 +283,9 @@ class PacmanQAgent(QLearningAgent):
     For example, to change the exploration rate, try:
         python pacman.py -p PacmanQLearningAgent -a epsilon=0.1
 
-    alpha    - learning rate
-    epsilon  - exploration rate
-    gamma    - discount factor
+    alpha    - learning rate 0.2
+    epsilon  - exploration rate 0.05
+    gamma    - discount factor 0.8
     numTraining - number of training episodes, i.e. no learning after these many episodes
     """
     args['epsilon'] = epsilon
@@ -329,6 +305,7 @@ class PacmanQAgent(QLearningAgent):
     self.doAction(state,action)
     return action
 
+
 class ApproximateQAgent(PacmanQAgent):
   """
      ApproximateQLearningAgent
@@ -337,12 +314,9 @@ class ApproximateQAgent(PacmanQAgent):
      and update.  All other QLearningAgent functions
      should work as is.
   """
-  def __init__(self, extractor='IdentityExtractor', **args):
+  def __init__(self, extractor='SimpleExtractor', **args):
     self.featExtractor = util.lookup(extractor, globals())()
     PacmanQAgent.__init__(self, **args)
-
-    # You might want to initialize weights here.
-    "*** YOUR CODE HERE ***"
     self.weights = util.Counter()
 
   def getQValue(self, state, action):
@@ -350,7 +324,6 @@ class ApproximateQAgent(PacmanQAgent):
       Should return Q(state,action) = w * featureVector
       where * is the dotProduct operator
     """
-    "*** YOUR CODE HERE ***"
     qValue = 0.0
     features = self.featExtractor.getFeatures(state, action)
     for key in features.keys():
@@ -362,7 +335,6 @@ class ApproximateQAgent(PacmanQAgent):
     """
        Should update your weights based on transition
     """
-    "*** YOUR CODE HERE ***"
     features = self.featExtractor.getFeatures(state, action)
     for key in features.keys():
     	self.weights[key] += self.alpha * (reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)) * features[key]
@@ -374,8 +346,6 @@ class ApproximateQAgent(PacmanQAgent):
 
     # did we finish training?
     if self.episodesSoFar == self.numTraining:
-      # you might want to print your weights here for debugging
-      "*** YOUR CODE HERE ***"
       pass
 
 
@@ -388,11 +358,6 @@ class FeatureExtractor:
     """
     util.raiseNotDefined()
 
-class IdentityExtractor(FeatureExtractor):
-  def getFeatures(self, state, action):
-    feats = util.Counter()
-    feats[(state, action)] = 1.0
-    return feats
 
 def closestFood(pos, food, walls):
   """
@@ -415,6 +380,7 @@ def closestFood(pos, food, walls):
       fringe.append((nbr_x, nbr_y, dist + 1))
   # no food found
   return None
+
 
 class SimpleExtractor(FeatureExtractor):
   """
@@ -439,9 +405,11 @@ class SimpleExtractor(FeatureExtractor):
     x, y = state.getPacmanPosition()
     dx, dy = Actions.directionToVector(action)
     next_x, next_y = int(x + dx), int(y + dy)
+    ghostRunDistance = 3
+    future_x, future_y = int(x + dx*ghostRunDistance), int(y + dy*ghostRunDistance)
 
     # count the number of ghosts 1-step away
-    features["#-of-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in ghosts)
+    features["#-of-ghosts-1-step-away"] = sum((future_x, future_y) in Actions.getLegalNeighbors(g, walls) for g in ghosts)
 
     # if there is no danger of ghosts then add the food feature
     if not features["#-of-ghosts-1-step-away"] and food[next_x][next_y]:
