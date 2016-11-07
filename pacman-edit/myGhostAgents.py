@@ -7,39 +7,10 @@ import random
 import numpy as np
 import util
 
+
 class MyGhostAgent( Agent ):
     def __init__( self, index ):
         self.index = index
-
-    def getAction( self, state ):
-        legalActions = state.getLegalActions( self.index )
-        print "run getAction"
-
-        # Find out if ghost is scared
-        ghostState = state.getGhostState(self.index)
-        isScared = ghostState.scaredTimer > 0
-
-        # get self position and position of other ghost
-        positionSelf = state.getGhostPosition(self.index)
-        if self.index == 1: positionOther = state.getGhostPosition(2)
-        if self.index == 2: positionOther = state.getGhostPosition(1)
-
-        # get pacman position
-        positionPacman = state.getPacmanPosition()
-
-        # find 2 shortest paths
-        path1,path2 = shortest_path(walls=state.getWalls(), start=positionSelf, end=positionPacman)
-
-        # if ghosts are close together, second ghost takes path 2.
-        ghostDistance = util.manhattanDistance(positionSelf, positionOther)
-        if ghostDistance <= 4 and self.index == 2:
-            myPath = path2  # take path2
-        else:
-            myPath = path1  # take path1
-
-        myAction = getMyAction(myPath)
-        return myAction
-        #return legalActions[0] # currently returns first legal action available
 
     def getMyAction(self,path):
         legalActions = state.getLegalActions(self.index)
@@ -47,10 +18,10 @@ class MyGhostAgent( Agent ):
         currentPos = myPath[-1]
         nextPos = myPath[-2]
 
-        north = [currentPos[0]+1,currentPos[1]]
-        south = [currentPos[0]-1,currentPos[1]]
-        east = [currentPos[0],currentPos[1]+1]
-        west = [currentPos[0],currentPos[1]-1]
+        north = [currentPos[0]+1, currentPos[1]]
+        south = [currentPos[0]-1, currentPos[1]]
+        east = [currentPos[0], currentPos[1]+1]
+        west = [currentPos[0], currentPos[1]-1]
 
         if nextPos == north: return Directions.NORTH
         if nextPos == south: return Directions.SOUTH
@@ -60,7 +31,7 @@ class MyGhostAgent( Agent ):
             return legalActions[0]
 
     # SHORTEST PATH FUNCTION - returns shortest and second shortest path
-    def shortest_path(walls, start, end):
+    def shortestPath(walls, start, end):
         start = [start[0], start[1]]
         end = [end[0], end[1]]
         if start == end:
@@ -127,4 +98,36 @@ class MyGhostAgent( Agent ):
         #print counts
 
         return path1, path2
+
+    def getAction(self, state):
+        legalActions = state.getLegalActions(self.index)
+        print "run getAction"
+
+        # Find out if ghost is scared
+        ghostState = state.getGhostState(self.index)
+        isScared = ghostState.scaredTimer > 0
+
+        # get self position and position of other ghost
+        positionSelf = state.getGhostPosition(self.index)
+        if self.index == 1: positionOther = state.getGhostPosition(2)
+        if self.index == 2: positionOther = state.getGhostPosition(1)
+
+        # get pac-man position
+        positionPacman = state.getPacmanPosition()
+
+        # find 2 shortest paths
+        path1, path2 = shortestPath(walls=state.getWalls(), start=positionSelf, end=positionPacman)
+
+        # if ghosts are close together, second ghost takes path 2.
+        ghostDistance = util.manhattanDistance(positionSelf, positionOther)
+        if ghostDistance <= 4 and self.index == 2:
+            myPath = path2  # take path2
+        else:
+            myPath = path1  # take path1
+
+        myAction = getMyAction(myPath)
+        return myAction
+        # return legalActions[0] # currently returns first legal action available
+
+
 
