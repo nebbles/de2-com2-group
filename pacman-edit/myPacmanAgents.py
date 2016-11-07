@@ -8,20 +8,25 @@ import util
 
 class MyPacmanAgent(game.Agent):
 
-    def pacmanDanger(pacmanPos,ghostPos):
+    def pacmanDanger(pacmanPos,ghostPosns):
         danger = 'ok'
+        badDangerDist = 3
+        critDangerDist = 1
 
         # check manhattanDistance of ghost from pacman
-        # if ghost is in danger return danger
-        # if ghost in crit zone flag critical
+        dist1 = util.manhattanDistance(ghostPosns[0],pacmanPos)
+        dist2 = util.manhattanDistance(ghostPosns[1],pacmanPos)
 
+        if dist1 or dist2 <= badDangerDist: danger = 'bad' # if ghost is in danger return danger
+        if dist1 or dist2 <= critDangerDist: danger = 'critical' # if ghost in crit zone flag critical
         return danger
 
-    def priority(pacmanPos,ghostPos,isScared):
+    def priority(pacmanPos,ghostPosns,isScared):
         if isScared: # check ghost
             return 'chase' # return chase priority
 
-        pacmanDanger(pacmanPos=pacmanPos,ghostPos=ghostPos) # check danger
+        danger = pacmanDanger(pacmanPos=pacmanPos,ghostPosns=ghostPosns) # check danger
+
         # check energisers
         # check biscuits
 
@@ -31,14 +36,14 @@ class MyPacmanAgent(game.Agent):
 
         # Load ghost information
         ghostState = state.getGhostState( 1 )
-        ghostPosition = state.getGhostPosition( 1 )
+        ghostPositions = state.getGhostPositions()
         ghostIsScared = ghostState.scaredTimer > 0
 
         # Load pacman information
         pacmanPosition = state.getPacmanPosition()
 
         # Decide what plan the pacman will take
-        plan = priority(pacmanPos=pacmanPosition,ghostPos=ghostPosition,isScared=ghostIsScared)
+        plan = priority(pacmanPos=pacmanPosition,ghostPosns=ghostPositions,isScared=ghostIsScared)
 
         # choose target tile based on priority plan
 
