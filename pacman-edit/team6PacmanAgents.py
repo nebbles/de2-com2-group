@@ -26,6 +26,32 @@ def getUpdatedWalls(state, ghostPositions):
     return wallList
 
 
+def getFoodList(state):
+    getFoods = state.getFood()
+    positionFood = []
+    for x in getFoods:
+        for y in getFoods[x]:
+            if getFoods[x][y]:
+                positionFood.append((x, y))
+    return positionFood
+
+
+def getNearestItem(positionSelf, positionItems):
+    distanceItems = []
+    for item in positionItems:
+        distance = shortestPath(walls=walls, start=positionSelf, end=item)
+        distanceItems.append(distance)
+    index = distanceItems.index(min(distanceItems))
+    positionClosestItem = positionItems[index]
+    return positionClosestItem
+
+
+def getActionOfShortestPath(walls, start, end):
+    path1, path2 = shortestPath(walls=walls, start=start, end=end)
+    myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
+    return myAction
+
+
 class team6PacmanAgents(game.Agent):
 
     def pacmanDanger(self, state, pacmanPos, ghostPosns):
@@ -36,6 +62,9 @@ class team6PacmanAgents(game.Agent):
         # check path distance of ghosts from pacman
         distances = []
         for ghost in ghostPosns:
+            print walls
+            print pacmanPos
+            print ghost
             dist, other = shortestPath(walls=walls, start=pacmanPos, end=ghost)
             distances.append(dist)
 
@@ -52,77 +81,44 @@ class team6PacmanAgents(game.Agent):
 
         for ghostIndex in range(1, numberOfGhosts + 1):
             ghostState = state.getGhostState(ghostIndex)
-            ghostPosition = state.getGhostPosition(ghostIndex)
+            posX, posY = state.getGhostPosition(ghostIndex)
+            ghostPosition = (int(posX), int(posY))
             if ghostState.scaredTimer > 0:
                 positionScaredGhosts.append(ghostPosition)
             else:
                 positionAngryGhosts.append(ghostPosition)
 
-
-
-
-        # ghost1State = state.getGhostState(1)
-        # ghost2State = state.getGhostState(2)
-        # ghost1IsScared = ghost1State.scaredTimer > 0
-        # ghost2IsScared = ghost2State.scaredTimer > 0
-        # positionGhosts = state.getGhostPositions()
-        #
-        # scaredGhostsPosns = []
-        # chaseGhostsPositions = []
-        # if ghost1IsScared:
-        #     scaredGhostsPosns.append(positionGhosts[0])
-        # if ghost2IsScared:
-        #     scaredGhostsPosns.append(positionGhosts[1])
-        #
-        # for chaseGhost in positionGhosts:
-        #
-        #     if chaseGhost
-        #         chaseGhostsPositions.append()
-
         # Load pacman information
-        positionPacman = state.getPacmanPosition()
+        posX, posY = state.getPacmanPosition()
+        positionPacman = (int(posX), int(posY))
 
         # find the pacman danger
         danger = self.pacmanDanger(state, pacmanPos=positionPacman, ghostPosns=positionAngryGhosts)
 
         # act based on danger
-
+        wallList = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)  # amend walls data with ghost pos.s
         if danger == 'critical':
             pass  # act on critical danger
         if danger == 'ok':
             if len(positionScaredGhosts) > 0:
-                # find nearest scared ghost
-                distanceScaredGhosts = []
-                for positionScaredGhost in positionScaredGhosts:
-                    distance = shortestPath(walls=walls, start=positionPacman, end=positionScaredGhost)
-                    distanceScaredGhosts.append(distance)
-                index = distanceScaredGhosts.index(min(distanceScaredGhosts))
-                positionClosestScaredGhost = positionScaredGhosts[index]
+                positionClosestScaredGhost = getNearestItem(positionPacman, positionScaredGhosts) # find nearest scared ghost
+                # action of shortest path to nearest scared ghost
+                myAction = getActionOfShortestPath(walls=wallList, start=positionPacman, end=positionClosestScaredGhost)
+                return myAction
 
-                # amend walls data with ghost positions
-                wallList = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)
+            positionCapsules = state.getCapsules()
+            if len(positionCapsules) > 0:
+                positionClosestCapsule = getNearestItem(positionPacman, positionCapsules)  # find nearest capsule
+                # action of shortest path to nearest capsule
+                myAction = getActionOfShortestPath(walls=wallList, start=positionPacman, end=positionClosestCapsule)
+                return myAction
 
-                # shortest path to nearest scared ghost
-                path1, path2 = shortestPath(walls=wallList, start=positionPacman, end=positionClosestScaredGhost)
-                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
-
-            else:
-                # find nearest capsule
-                positionCapsules = state.getCapsules()
-                distanceCapsules = []
-                for capsule in capsules:
-                    distance = shortestPath(walls=walls, start=positionPacman, end=capsule)
-                    distanceCapsules.append(distance)
-                index = distanceCapsules.index(min(distanceCapsules))
-                positionClosestCapsule = positionCapsules[index]
-
-                # amend walls data with ghost positions
-                wallList = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)
-
-                # shortest path to nearest capsule
-                path1, path2 = shortestPath(walls=wallList, start=positionPacman, end=positionClosestCapsule)
-                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
+            # No capsules and no ghosts to chase, so eat
+            positionFoods = getFoodList(state)
+            positionClosestFood = getNearestItem(positionPacman, positionFoods)  # find nearest food
+            # shortest path to nearest capsule
+            myAction = getActionOfShortestPath(walls=wallList, start=positionPacman, end=positionClosestFood)
+            return myAction
 
         return myAction
         #return Directions.STOP
-
