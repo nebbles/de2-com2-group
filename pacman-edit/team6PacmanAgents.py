@@ -8,10 +8,9 @@ import game
 import util
 
 
-
 class team6PacmanAgents(game.Agent):
 
-    def pacmanDanger(pacmanPos,ghostPosns):
+    def pacmanDanger(self, pacmanPos,ghostPosns):
         danger = 'ok'
         badDangerDist = 3
         critDangerDist = 1
@@ -24,11 +23,11 @@ class team6PacmanAgents(game.Agent):
         if dist1 or dist2 <= critDangerDist: danger = 'critical' # if ghost in crit zone flag critical
         return danger
 
-    def priority(pacmanPos,ghostPosns,isScared):
+    def priority(self, pacmanPos, ghostPosns, isScared):
         if isScared: # check ghost
             return 'chase' # return chase priority
 
-        danger = pacmanDanger(pacmanPos=pacmanPos,ghostPosns=ghostPosns) # check danger
+        danger = self.pacmanDanger(pacmanPos=pacmanPos,ghostPosns=ghostPosns) # check danger
 
         # check energisers
         # check biscuits
