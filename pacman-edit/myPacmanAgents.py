@@ -35,15 +35,17 @@ class MyPacmanAgent(game.Agent):
     def getAction(self, state):
 
         # Load ghost information
-        ghostState = state.getGhostState( 1 )
+        ghost1State = state.getGhostState(1)
+        ghost2State = state.getGhostState(2)
         ghostPositions = state.getGhostPositions()
-        ghostIsScared = ghostState.scaredTimer > 0
+        ghost1IsScared = ghost1State.scaredTimer > 0
+        ghost2IsScared = ghost2State.scaredTimer > 0
 
         # Load pacman information
         pacmanPosition = state.getPacmanPosition()
 
         # Decide what plan the pacman will take
-        plan = priority(pacmanPos=pacmanPosition,ghostPosns=ghostPositions,isScared=ghostIsScared)
+        plan = self.priority(pacmanPos=pacmanPosition,ghostPosns=ghostPositions,isScared=ghostIsScared)
 
         # choose target tile based on priority plan
 
