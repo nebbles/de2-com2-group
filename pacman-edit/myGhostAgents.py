@@ -21,32 +21,31 @@ class Queue:
         return len(self.items)
 
 
-def getPathAction(self, state, myPath):
-    legalActions = state.getLegalActions(self.index)
-    # take path and extract first move direction
-    # currentPos = myPath[-1]
-    ghostPos = state.getGhostPosition(self.index)
-    # print myPath
-    # print 'step to', myPath[-2]
-    # print self.walls
-    nextPos = myPath[-2]
+def getPathAction(self, state, myPath): # take path and extract first move direction
 
-    east = [ghostPos[0] + 1, ghostPos[1]]
-    west = [ghostPos[0] - 1, ghostPos[1]]
-    north = [ghostPos[0], ghostPos[1] + 1]
-    south = [ghostPos[0], ghostPos[1] - 1]
+    legalActions = state.getLegalActions(self.index)  # get legal actions of self
+    currentPos = myPath[-1]  # current position is last item in list
+    nextPos = myPath[-2]  # position after current is penultimate item in list
 
+    east = [currentPos[0] + 1, currentPos[1]]
+    west = [currentPos[0] - 1, currentPos[1]]
+    north = [currentPos[0], currentPos[1] + 1]
+    south = [currentPos[0], currentPos[1] - 1]
+
+    # if next suggested position is 'direction' and 'direction' is a legal action then move 'direction'
     if nextPos == north and Directions.NORTH in legalActions: return Directions.NORTH
     if nextPos == south and Directions.SOUTH in legalActions: return Directions.SOUTH
     if nextPos == east and Directions.EAST in legalActions: return Directions.EAST
-    if nextPos == west and Directions.WEST in legalActions:
-        return Directions.WEST
-    else:
-        return legalActions[0]
+    if nextPos == west and Directions.WEST in legalActions: return Directions.WEST
+    else: return legalActions[0]  # else just fo the first legal option (stops attempted backward movements)
 
 
-# SHORTEST PATH FUNCTION - returns shortest and second shortest path
 def shortestPath(walls, start, end):
+    '''
+    SHORTEST PATH FUNCTION
+    returns path1,path2
+    path1 is shortest path and path2 is second shortest path
+    '''
     start = [start[0], start[1]]
     end = [end[0], end[1]]
     if start == end:
