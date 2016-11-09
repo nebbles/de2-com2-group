@@ -1,6 +1,6 @@
 # DE2-COM2 Computing 2 Group Project
 
-*Dr Billy Wu* - Tutor Group:  
+*Dr Billy Wu* - Tutor Group **6**:  
 > **Ben Greenberg (@nebbles)  
 > Kenza Zouitene (@kenzaz)  
 > Ian Keglar (@iankegler)  
