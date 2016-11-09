@@ -3,6 +3,7 @@
 from game import Agent
 from game import Actions
 from game import Directions
+from util import manhattanDistance
 import random
 import numpy as np
 import util
@@ -112,58 +113,85 @@ def shortestPath(walls, start, end):
     return path1, path2
 
 
-class MyGhostAgent(Agent):
+def similarPath(pathA, pathB, steps):
+    while len(pathA) < steps + 1 or len(pathB) < steps + 1:
+        steps -= 1
+        if steps == 0:
+            return False
+
+    duplicate = []
+    for i in range(0, steps):
+        if pathA[i] == pathB[i]:
+            duplicate.append(True)
+        else:
+            duplicate.append(False)
+    if sum(duplicate) == steps:  # if all the steps are True
+        return True  # paths are similar
+    else:
+        return False  # paths are not similar
+
+
+class team6GhostAgents(Agent):
     def __init__(self, index):
         self.index = index
 
     def getAction(self, state):
         legalActions = state.getLegalActions(self.index)
+        scared = state.getGhostState(self.index).scaredTimer > 0
+        shouldRun = False
+        if scared: shouldRun = True
 
-        # Find out if ghost is scared
-        ghostState = state.getGhostState(self.index)
-        isScared = ghostState.scaredTimer > 0
-
-        # get self position and position of other ghost
+        # Get self position
         posX,posY = state.getGhostPosition(self.index)
-        positionSelf = (int(posX),int(posY))
-        #print 'position of self',positionSelf
-        if self.index == 1: positionOther = state.getGhostPosition(2)
-        if self.index == 2: positionOther = state.getGhostPosition(1)
+        positionSelf = (int(posX), int(posY))
 
-        # get pac-man position
-        positionPacman = state.getPacmanPosition()
-
-        #self.WallGrid = []
-        #self.WallArray = []
-        '''
-        self.WallsGrid = state.getWalls()
-        self.WallArray = np.zeros((self.WallsGrid.width, self.WallsGrid.height), dtype=bool)
-
-        for y in range(0, self.WallsGrid.height):
-            for x in range(0, self.WallsGrid.width):
-                if self.WallsGrid[x][y] == True:
-                    self.WallArray[x][y] = True
-
-        print self.WallArray
-        '''
-        # find 2 shortest paths
-
-        self.walls = state.getWalls()
-        path1, path2 = shortestPath(walls=self.walls,start=positionSelf, end=positionPacman)
-
-        #print path2
-        # if ghosts are close together, second ghost takes path 2.
-        ghostSeperation = util.manhattanDistance(positionSelf, positionOther)
-        if ghostSeperation <= 4 and self.index == 2:
-            myPath = path2  # take path2
+        # Get position of other ghost (ghost 3 [or greater] just looks to ghost 1)
+        if self.index == 1:
+            posX, posY = state.getGhostPosition(2)
+            positionOther = (int(posX), int(posY))
         else:
-            myPath = path1  # take path1
+            posX, posY = state.getGhostPosition(1)
+            positionOther = (int(posX), int(posY))
 
-        #myPath = path1
+        # Get pacman position
+        posX, posY = state.getPacmanPosition()
+        positionPacman = (int(posX), int(posY))
 
-        myAction = getPathAction(self, state, myPath)
+        # Get the walls
+        walls = state.getWalls()  # get walls of map
+
+        # Get remaining capsules and find if the pacman closest distance to capsule is within a certain value
+        capsules = state.getCapsules()
+        pathLengths = []
+        for caps in capsules:
+            path1,path2 = shortestPath(walls=walls,start=caps, end=positionPacman)
+            pathLengths.append(len(path1))
+        for length in pathLengths:
+            if length < 4:  # distance that ghost starts to back away from pacman
+                shouldRun = True
+
+        if shouldRun:
+            speed = 0.5
+            actionVectors = [Actions.directionToVector(a, speed) for a in legalActions]
+            newPositions = [(positionSelf[0] + a[0], positionSelf[1] + a[1]) for a in actionVectors]
+            distancesToPacman = [manhattanDistance(positionSelf, positionPacman) for positionSelf in newPositions]
+            bestScore = max(distancesToPacman)
+            bestActions = [action for action, distance in zip(legalActions, distancesToPacman) if
+                           distance == bestScore]
+            myAction = bestActions[0]
+        else:
+            path1, path2 = shortestPath(walls=walls,start=positionSelf, end=positionPacman) # find 2 shortest paths
+
+            if self.index == 2:
+                pathA, otherpath = shortestPath(walls=walls, start=positionOther, end=positionPacman)  # find 2 shortest paths
+                stepsCompared = 3
+                similar = False
+                similar = similarPath(pathA, path1, stepsCompared)
+                if similar:
+                    myPath = path2  # take path2
+                else:
+                    myPath = path1  # take path1
+            else: myPath = path1
+            myAction = getPathAction(self, state, myPath)
+
         return myAction
-        # return legalActions[0] # currently returns first legal action available
-
-
-
