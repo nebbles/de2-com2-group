@@ -180,18 +180,22 @@ class team6GhostAgents(Agent):
                            distance == bestScore]
             myAction = bestActions[0]
         else:
-            path1, path2 = shortestPath(walls=walls,start=positionSelf, end=positionPacman) # find 2 shortest paths
+            path1, path2 = shortestPath(walls=walls,start=positionSelf, end=positionPacman)  # find 2 shortest paths for self
+            pathOther, other = shortestPath(walls=walls, start=positionOther, end=positionPacman)  # find 2 shortest paths of other ghost of two
 
-            if self.index == 2:
-                pathA, otherpath = shortestPath(walls=walls, start=positionOther, end=positionPacman)  # find 2 shortest paths
-                stepsCompared = 3
-                similar = False
-                similar = similarPath(pathA, path1, stepsCompared)
-                if similar:
+            stepsCompared = 3
+            similar = False  # set paths are similar flag to False
+            similar = similarPath(pathOther, path1, stepsCompared)
+
+            myPath = path1  # set path of self to shortest path
+            if similar:  # if paths of ghost 1 and 2 are similar
+                if len(path1) > len(pathOther):  # if self path is longer than ghost teammate then
                     myPath = path2  # take path2
-                else:
-                    myPath = path1  # take path1
-            else: myPath = path1
+                if len(path1) < len(pathOther):  # if self path is shorter than ghost teammate then
+                    myPath = path1  # take path1 - shortest path
+                if len(path1) == len(pathOther):  # if path length is the same then
+                    if self.index == 2: myPath = path2  # ghost 2 takes its second best route
+
             myAction = getPathAction(self, state, myPath)
 
         return myAction
