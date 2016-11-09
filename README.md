@@ -2,7 +2,7 @@
 
 *Dr Billy Wu* - Tutor Group:  
 > **Ben Greenberg (@nebbles)  
-> Kenza Zouitene  
+> Kenza Zouitene (@kenzaz)  
 > Ian Keglar (@iankegler)  
 > Bea Lopez (@bealln)  
 > Kyle Ruizheng Zeng**
