@@ -3,92 +3,126 @@
 from team6GhostAgents import *
 from pacman import Directions
 from game import Agent
+from game import GameStateData
 import random
 import game
 import util
 
 
+def wallsConverted(state):
+    walls = state.getWalls()
+    wallList = []
+    for x in walls:
+        for y in walls[x]:
+            wallList[x][y] = walls[x][y]
+    return wallList
+
+
+def getUpdatedWalls(state, ghostPositions):
+    wallList = wallsConverted(state)
+    for ghost in positionGhosts:
+        x, y = ghost
+        wallList[x][y] = True
+    return wallList
+
+
 class team6PacmanAgents(game.Agent):
 
-    def pacmanDanger(self, pacmanPos,ghostPosns):
+    def pacmanDanger(self, state, pacmanPos, ghostPosns):
         danger = 'ok'
-        badDangerDist = 3
-        critDangerDist = 1
+        critDangerDist = 3  # minimum is 3, recommended 3 or 4
+        walls = state.getWalls()
 
-        # check manhattanDistance of ghost from pacman
-        dist1 = util.manhattanDistance(ghostPosns[0],pacmanPos)
-        dist2 = util.manhattanDistance(ghostPosns[1],pacmanPos)
+        # check path distance of ghosts from pacman
+        distances = []
+        for ghost in ghostPosns:
+            dist, other = shortestPath(walls=walls, start=pacmanPos, end=ghost)
+            distances.append(dist)
 
-        if dist1 or dist2 <= badDangerDist: danger = 'bad' # if ghost is in danger return danger
-        if dist1 or dist2 <= critDangerDist: danger = 'critical' # if ghost in crit zone flag critical
+        if not all(i > critDangerDist for i in distances):
+            danger = 'critical'  # if ghost in critical zone, flag critical
         return danger
-
-    def priority(self, pacmanPos, ghostPosns, isScared):
-        if isScared: # check ghost
-            return 'chase' # return chase priority
-
-        danger = self.pacmanDanger(pacmanPos=pacmanPos,ghostPosns=ghostPosns) # check danger
-
-        # check energisers
-        # check biscuits
-
-        # return a plan for the pacman based on danger and other info
 
     def getAction(self, state):
 
         # Load ghost information
-        ghost1State = state.getGhostState(1)
-        ghost2State = state.getGhostState(2)
-        ghostPositions = state.getGhostPositions()
-        ghost1IsScared = ghost1State.scaredTimer > 0
-        ghost2IsScared = ghost2State.scaredTimer > 0
+        numberOfGhosts = len(state.data.agentStates) -1  # state.data.agentStates[agentIndex]
+        positionScaredGhosts = []
+        positionAngryGhosts = []
+
+        for ghostIndex in range(1, numberOfGhosts + 1):
+            ghostState = state.getGhostState(ghostIndex)
+            ghostPosition = state.getGhostPosition(ghostIndex)
+            if ghostState.scaredTimer > 0:
+                positionScaredGhosts.append(ghostPosition)
+            else:
+                positionAngryGhosts.append(ghostPosition)
+
+
+
+
+        # ghost1State = state.getGhostState(1)
+        # ghost2State = state.getGhostState(2)
+        # ghost1IsScared = ghost1State.scaredTimer > 0
+        # ghost2IsScared = ghost2State.scaredTimer > 0
+        # positionGhosts = state.getGhostPositions()
+        #
+        # scaredGhostsPosns = []
+        # chaseGhostsPositions = []
+        # if ghost1IsScared:
+        #     scaredGhostsPosns.append(positionGhosts[0])
+        # if ghost2IsScared:
+        #     scaredGhostsPosns.append(positionGhosts[1])
+        #
+        # for chaseGhost in positionGhosts:
+        #
+        #     if chaseGhost
+        #         chaseGhostsPositions.append()
 
         # Load pacman information
-        pacmanPosition = state.getPacmanPosition()
+        positionPacman = state.getPacmanPosition()
 
-        # Decide what plan the pacman will take
-        plan = self.priority(pacmanPos=pacmanPosition,ghostPosns=ghostPositions,isScared=ghostIsScared)
+        # find the pacman danger
+        danger = self.pacmanDanger(state, pacmanPos=positionPacman, ghostPosns=positionAngryGhosts)
 
-        # choose target tile based on priority plan
+        # act based on danger
 
-        return Directions.STOP
+        if danger == 'critical':
+            pass  # act on critical danger
+        if danger == 'ok':
+            if len(positionScaredGhosts) > 0:
+                # find nearest scared ghost
+                distanceScaredGhosts = []
+                for positionScaredGhost in positionScaredGhosts:
+                    distance = shortestPath(walls=walls, start=positionPacman, end=positionScaredGhost)
+                    distanceScaredGhosts.append(distance)
+                index = distanceScaredGhosts.index(min(distanceScaredGhosts))
+                positionClosestScaredGhost = positionScaredGhosts[index]
 
-    '''
-    "A ghost that prefers to rush Pacman, or flee when scared."
-    def __init__( self, index, prob_attack=0.8, prob_scaredFlee=0.8 ):
-        self.index = index
-        self.prob_attack = prob_attack
-        self.prob_scaredFlee = prob_scaredFlee
+                # amend walls data with ghost positions
+                wallList = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)
 
-    def getDistribution( self, state ):
-        # Read variables from state
-        ghostState = state.getGhostState( self.index )
-        legalActions = state.getLegalActions( self.index )
-        pos = state.getGhostPosition( self.index )
-        isScared = ghostState.scaredTimer > 0
+                # shortest path to nearest scared ghost
+                path1, path2 = shortestPath(walls=wallList, start=positionPacman, end=positionClosestScaredGhost)
+                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
 
-        speed = 1
-        if isScared: speed = 0.5
+            else:
+                # find nearest capsule
+                positionCapsules = state.getCapsules()
+                distanceCapsules = []
+                for capsule in capsules:
+                    distance = shortestPath(walls=walls, start=positionPacman, end=capsule)
+                    distanceCapsules.append(distance)
+                index = distanceCapsules.index(min(distanceCapsules))
+                positionClosestCapsule = positionCapsules[index]
 
-        actionVectors = [Actions.directionToVector( a, speed ) for a in legalActions]
-        newPositions = [( pos[0]+a[0], pos[1]+a[1] ) for a in actionVectors]
-        pacmanPosition = state.getPacmanPosition()
+                # amend walls data with ghost positions
+                wallList = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)
 
-        # Select best actions given the state
-        distancesToPacman = [manhattanDistance( pos, pacmanPosition ) for pos in newPositions]
-        if isScared:
-            bestScore = max( distancesToPacman )
-            bestProb = self.prob_scaredFlee
-        else:
-            bestScore = min( distancesToPacman )
-            bestProb = self.prob_attack
-        bestActions = [action for action, distance in zip( legalActions, distancesToPacman ) if distance == bestScore]
+                # shortest path to nearest capsule
+                path1, path2 = shortestPath(walls=wallList, start=positionPacman, end=positionClosestCapsule)
+                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
 
-        # Construct distribution
-        dist = util.Counter()
-        for a in bestActions: dist[a] = bestProb / len(bestActions)
-        for a in legalActions: dist[a] += ( 1-bestProb ) / len(legalActions)
-        dist.normalize()
-        return dist
-    '''
+        return myAction
+        #return Directions.STOP
 
