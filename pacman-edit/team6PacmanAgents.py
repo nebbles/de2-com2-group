@@ -1,12 +1,15 @@
 # myPacmanAgents.py
 
+from team6GhostAgents import *
 from pacman import Directions
 from game import Agent
 import random
 import game
 import util
 
-class MyPacmanAgent(game.Agent):
+
+
+class team6PacmanAgents(game.Agent):
 
     def pacmanDanger(pacmanPos,ghostPosns):
         danger = 'ok'
@@ -51,7 +54,7 @@ class MyPacmanAgent(game.Agent):
 
         return Directions.STOP
 
-'''
+    '''
     "A ghost that prefers to rush Pacman, or flee when scared."
     def __init__( self, index, prob_attack=0.8, prob_scaredFlee=0.8 ):
         self.index = index
@@ -88,3 +91,5 @@ class MyPacmanAgent(game.Agent):
         for a in legalActions: dist[a] += ( 1-bestProb ) / len(legalActions)
         dist.normalize()
         return dist
+    '''
+
