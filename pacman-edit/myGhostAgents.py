@@ -80,17 +80,13 @@ def shortestPath(walls, start, end):
     # calculate alternate route start point for reconstruction
     n = end
     adjacent = [[end[0] + 1, end[1]], [end[0] - 1, end[1]], [end[0], end[1] + 1], [end[0], end[1] - 1]]
-
     minoption = None
 
     for option in adjacent:
-        # print option
-        # print predecessors[end[0], end[1]]
         if option != predecessors[end[0], end[1]].tolist() and not walls[option[0]][option[1]]:
-            if minoption == None:
-                minoption = option
+            if minoption == None: minoption = option  # for first iteration
             if counts[minoption[0], minoption[1]] >= counts[option[0], option[1]]:
-                minoption = option
+                minoption = option  # update min option with a better min
 
     # construct path 1
     while n != start:
@@ -110,14 +106,14 @@ def shortestPath(walls, start, end):
     path2.append(start)
     path2.insert(0, end)
 
-    # print "counts:"
-    # print counts
-    # print predecessors
+    # print 'counts \n', counts  # debug
+    # print 'predecessors \n', predecessors  # debug
 
     return path1, path2
 
-class MyGhostAgent( Agent ):
-    def __init__( self, index ):
+
+class MyGhostAgent(Agent):
+    def __init__(self, index):
         self.index = index
 
     def getAction(self, state):
