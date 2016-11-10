@@ -195,9 +195,21 @@ class team6PacmanAgents(game.Agent):
         danger = self.pacmanDanger(state, pacmanPos=positionPacman, ghostPosns=positionAngryGhosts)
 
         # act based on danger
+        walls = state.getWalls()
         newWalls = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)  # amend walls data with ghost pos.s
-        if danger == 'critical':
-            pass  # act on critical danger
+
+        if danger == 'critical':  # act on critical danger
+            speed = 1
+            actionVectors = [Actions.directionToVector(a, speed) for a in legalActions]
+            newPositions = [(positionPacman[0]+a[0], positionPacman[1]+a[1]) for a in actionVectors]
+            positionClosestAngryGhost = getNearestItem(state, walls, positionPacman, positionAngryGhosts)
+
+            # Select best actions given the state
+            distancesToAngryGhost = [util.manhattanDistance(positionPacman, positionClosestAngryGhost) for positionPacman in newPositions]
+            bestScore = max(distancesToAngryGhost)
+            bestActions = [action for action, distance in zip(legalActions, distancesToAngryGhost) if distance == bestScore]
+            myAction = bestActions[0]
+
         if danger == 'ok':
             if len(positionScaredGhosts) > 0:
                 positionClosestScaredGhost = getNearestItem(state, newWalls, positionPacman, positionScaredGhosts) # find nearest scared ghost
@@ -219,5 +231,6 @@ class team6PacmanAgents(game.Agent):
             myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
             return myAction
 
+        if myAction == None:
+            return Directions.STOP  # in case there is a problem assigning an action
         return myAction
-        #return Directions.STOP
