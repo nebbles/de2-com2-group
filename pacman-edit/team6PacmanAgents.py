@@ -183,7 +183,7 @@ class team6PacmanAgents(game.Agent):
             ghostState = state.getGhostState(ghostIndex)
             posX, posY = state.getGhostPosition(ghostIndex)
             ghostPosition = (int(posX), int(posY))
-            if ghostState.scaredTimer > 0:
+            if ghostState.scaredTimer > 2:  # if ghost is about to change back, do not chase it
                 positionScaredGhosts.append(ghostPosition)
             else:
                 positionAngryGhosts.append(ghostPosition)
