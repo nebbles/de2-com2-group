@@ -145,9 +145,15 @@ def getNearestItem(walls, positionSelf, positionItems):
     for item in positionItems:  # list of coordinates for specified item
         path1 = shortestPath(walls=walls, start=item, end=positionSelf, returnOne=True)
         distance = len(path1)  # take the length of the shortest path from self to item
-        distanceItems.append(distance)  # produce a list of distances of self from items
+        if distance > 0:
+            distanceItems.append(distance)  # produce a list of distances of self from items
+
+    if distanceItems == []:
+        return None
+
     index = distanceItems.index(min(distanceItems))  # find the index of the item with minimum distance to self
     positionClosestItem = positionItems[index]
+    print distanceItems
     return positionClosestItem  # return coordinates of closest item
 
 
@@ -216,22 +222,25 @@ class team6PacmanAgents(game.Agent):
         if danger == 'ok':
             if len(positionScaredGhosts) > 0:
                 positionClosestScaredGhost = getNearestItem(newWalls, positionPacman, positionScaredGhosts) # find nearest scared ghost
-                path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestScaredGhost, returnOne=True)
-                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
-                return myAction
+                if not positionClosestScaredGhost == None:
+                    path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestScaredGhost, returnOne=True)
+                    myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
+                    return myAction
 
             positionCapsules = state.getCapsules()
             if len(positionCapsules) > 0:
                 positionClosestCapsule = getNearestItem(newWalls, positionPacman, positionCapsules)  # find nearest capsule
-                path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestCapsule, returnOne=True)
-                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
-                return myAction
+                if not positionClosestCapsule == None:
+                    path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestCapsule, returnOne=True)
+                    myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
+                    return myAction
 
             # No capsules and no ghosts to chase, so eat food
             positionFoods = getFoodList(state)
             positionClosestFood = getNearestItem(newWalls, positionPacman, positionFoods)  # find nearest food
-            path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestFood, returnOne=True)
-            myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
-            return myAction
+            if not positionClosestFood == None:
+                path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestFood, returnOne=True)
+                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
+                return myAction
 
         return myAction
