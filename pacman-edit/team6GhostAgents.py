@@ -202,6 +202,9 @@ class team6GhostAgents(Agent):
                 if len(path1) == len(pathOther):  # if path length is the same then
                     if self.index == 2: myPath = path2  # ghost 2 takes its second best route
 
+            if len(path2) > 20:  # if path length is greater than 20
+                myPath = path1
+
             myAction = getPathAction(self, state, myPath)
 
         return myAction
