@@ -1,4 +1,4 @@
-# myGhostAgents.py
+# team6GhostAgents.py
 
 from game import Agent
 from game import Actions
@@ -23,8 +23,9 @@ class Queue:
 
 
 def getPathAction(self, state, myPath): # take path and extract first move direction
-
     legalActions = state.getLegalActions(self.index)  # get legal actions of self
+    if myPath == []: return legalActions[0]  # if path does not exist, then do the first legal action
+
     currentPos = myPath[-1]  # current position is last item in list
     nextPos = myPath[-2]  # position after current is penultimate item in list
 
@@ -41,10 +42,11 @@ def getPathAction(self, state, myPath): # take path and extract first move direc
     else: return legalActions[0]  # else just fo the first legal option (stops attempted backward movements)
 
 
-def shortestPath(walls, start, end):
+def shortestPath(walls, start, end, returnOne=False):
     '''
-    SHORTEST PATH FUNCTION
-    returns path1,path2
+    SHORTEST PATH FUNCTION - USING BFS ALGORITHM
+    returns (path1, path2) if returnOne==False
+    returns path1 if returnOne==True
     path1 is shortest path and path2 is second shortest path
     '''
     start = [start[0], start[1]]
@@ -59,7 +61,6 @@ def shortestPath(walls, start, end):
     predecessors = np.zeros((counts.shape[0], counts.shape[1], 2),
                             dtype=int)  # 2D array storing the predecessors (past points allowing path to be retraced)
     counts[start[0], start[1]] = 1
-
     # loop until the end position is found
     while not neighbours.isEmpty():
         n = neighbours.dequeue()
@@ -79,10 +80,8 @@ def shortestPath(walls, start, end):
     n = end
 
     # calculate alternate route start point for reconstruction
-    n = end
     adjacent = [[end[0] + 1, end[1]], [end[0] - 1, end[1]], [end[0], end[1] + 1], [end[0], end[1] - 1]]
     minoption = None
-
     for option in adjacent:
         if option != predecessors[end[0], end[1]].tolist() and not walls[option[0]][option[1]]:
             if minoption == None: minoption = option  # for first iteration
@@ -97,6 +96,14 @@ def shortestPath(walls, start, end):
         n = predecessors[n[0], n[1]].tolist()
     path1.append(start)
 
+    if returnOne == True: # if only shortest path is needed from function then skip the construction of path2
+        return path1
+
+    # we must exit function now if an alternate route could not be found, this is because minoption is None.
+    if minoption == None:
+        path2 = path1
+        return path1, path2
+
     # construct path 2
     n = minoption
     while n != start:
@@ -109,7 +116,6 @@ def shortestPath(walls, start, end):
 
     # print 'counts \n', counts  # debug
     # print 'predecessors \n', predecessors  # debug
-
     return path1, path2
 
 
@@ -145,7 +151,7 @@ class team6GhostAgents(Agent):
         posX,posY = state.getGhostPosition(self.index)
         positionSelf = (int(posX), int(posY))
 
-        # Get position of other ghost (ghost 3 [or greater] just looks to ghost 1)
+        # Get position of other ghost (ghost 2 [or greater] just looks to ghost 1)
         if self.index == 1:
             posX, posY = state.getGhostPosition(2)
             positionOther = (int(posX), int(posY))
@@ -164,10 +170,10 @@ class team6GhostAgents(Agent):
         capsules = state.getCapsules()
         pathLengths = []
         for caps in capsules:
-            path1,path2 = shortestPath(walls=walls,start=caps, end=positionPacman)
+            path1, path2 = shortestPath(walls=walls, start=caps, end=positionPacman)
             pathLengths.append(len(path1))
         for length in pathLengths:
-            if length < 4:  # distance that ghost starts to back away from pacman
+            if length < 3:  # distance that ghost starts to back away from pacman
                 shouldRun = True
 
         if shouldRun:
