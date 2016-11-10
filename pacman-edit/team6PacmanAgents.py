@@ -59,7 +59,6 @@ def shortestPath(walls, start, end):
     predecessors = np.zeros((counts.shape[0], counts.shape[1], 2),
                             dtype=int)  # 2D array storing the predecessors (past points allowing path to be retraced)
     counts[start[0], start[1]] = 1
-
     # loop until the end position is found
     while not neighbours.isEmpty():
         n = neighbours.dequeue()
@@ -79,7 +78,6 @@ def shortestPath(walls, start, end):
     n = end
 
     # calculate alternate route start point for reconstruction
-    n = end
     adjacent = [[end[0] + 1, end[1]], [end[0] - 1, end[1]], [end[0], end[1] + 1], [end[0], end[1] - 1]]
     minoption = None
 
@@ -97,6 +95,11 @@ def shortestPath(walls, start, end):
         n = predecessors[n[0], n[1]].tolist()
     path1.append(start)
 
+    # we must exit function now if an alternate route could not be found, this is because minoption is None.
+    if minoption == None:
+        path2 = path1
+        return path1, path2
+
     # construct path 2
     n = minoption
     while n != start:
@@ -109,22 +112,19 @@ def shortestPath(walls, start, end):
 
     # print 'counts \n', counts  # debug
     # print 'predecessors \n', predecessors  # debug
-
     return path1, path2
 
 
-def wallsConverted(state):
-    walls = state.getWalls()
-    wallList = []
-    for x in walls:
-        for y in walls[x]:
-            wallList[x][y] = walls[x][y]
-    return wallList
-
-
 def getUpdatedWalls(state, ghostPositions):
-    wallList = wallsConverted(state)
-    for ghost in positionGhosts:
+    walls = state.getWalls()
+
+    if ghostPositions == []:
+        return walls
+
+    import copy
+    wallList = copy.deepcopy(walls)
+
+    for ghost in ghostPositions:
         x, y = ghost
         wallList[x][y] = True
     return wallList
@@ -140,20 +140,16 @@ def getFoodList(state):
     return positionFood
 
 
-def getNearestItem(positionSelf, positionItems):
+def getNearestItem(state, walls, positionSelf, positionItems):
+    # walls = state.getWalls()
     distanceItems = []
     for item in positionItems:
-        distance = shortestPath(walls=walls, start=positionSelf, end=item)
+        path1, path2 = shortestPath(walls=walls, start=positionSelf, end=item)
+        distance = len(path1)
         distanceItems.append(distance)
     index = distanceItems.index(min(distanceItems))
     positionClosestItem = positionItems[index]
     return positionClosestItem
-
-
-def getActionOfShortestPath(walls, start, end):
-    path1, path2 = shortestPath(walls=walls, start=start, end=end)
-    myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
-    return myAction
 
 
 class team6PacmanAgents(game.Agent):
@@ -165,11 +161,10 @@ class team6PacmanAgents(game.Agent):
 
         # check path distance of ghosts from pacman
         distances = []
+        print ghostPosns
         for ghost in ghostPosns:
-            print walls
-            print pacmanPos
-            print ghost
-            dist, other = shortestPath(walls=walls, start=pacmanPos, end=ghost)
+            path1, other = shortestPath(walls=walls, start=ghost, end=pacmanPos)
+            dist = len(path1)
             distances.append(dist)
 
         if not all(i > critDangerDist for i in distances):
@@ -200,28 +195,28 @@ class team6PacmanAgents(game.Agent):
         danger = self.pacmanDanger(state, pacmanPos=positionPacman, ghostPosns=positionAngryGhosts)
 
         # act based on danger
-        wallList = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)  # amend walls data with ghost pos.s
+        newWalls = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)  # amend walls data with ghost pos.s
         if danger == 'critical':
             pass  # act on critical danger
         if danger == 'ok':
             if len(positionScaredGhosts) > 0:
-                positionClosestScaredGhost = getNearestItem(positionPacman, positionScaredGhosts) # find nearest scared ghost
-                # action of shortest path to nearest scared ghost
-                myAction = getActionOfShortestPath(walls=wallList, start=positionPacman, end=positionClosestScaredGhost)
+                positionClosestScaredGhost = getNearestItem(state, newWalls, positionPacman, positionScaredGhosts) # find nearest scared ghost
+                path1, path2 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestScaredGhost)
+                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
                 return myAction
 
             positionCapsules = state.getCapsules()
             if len(positionCapsules) > 0:
-                positionClosestCapsule = getNearestItem(positionPacman, positionCapsules)  # find nearest capsule
-                # action of shortest path to nearest capsule
-                myAction = getActionOfShortestPath(walls=wallList, start=positionPacman, end=positionClosestCapsule)
+                positionClosestCapsule = getNearestItem(state, newWalls, positionPacman, positionCapsules)  # find nearest capsule
+                path1, path2 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestCapsule)
+                myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
                 return myAction
 
-            # No capsules and no ghosts to chase, so eat
+            # No capsules and no ghosts to chase, so eat food
             positionFoods = getFoodList(state)
-            positionClosestFood = getNearestItem(positionPacman, positionFoods)  # find nearest food
-            # shortest path to nearest capsule
-            myAction = getActionOfShortestPath(walls=wallList, start=positionPacman, end=positionClosestFood)
+            positionClosestFood = getNearestItem(state, newWalls, positionPacman, positionFoods)  # find nearest food
+            path1, path2 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestFood)
+            myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
             return myAction
 
         return myAction
