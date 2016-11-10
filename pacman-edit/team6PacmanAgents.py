@@ -1,7 +1,8 @@
-# myPacmanAgents.py
+# team6PacmanAgents.py
 
 from pacman import Directions
 from game import Agent
+from game import Actions
 from game import GameStateData
 import random
 import game
@@ -23,8 +24,9 @@ class Queue:
 
 
 def getPathAction(self, state, myPath): # take path and extract first move direction
-
     legalActions = state.getLegalActions(self.index)  # get legal actions of self
+    if myPath == []: return legalActions[0]  # if path does not exist, then do the first legal action
+
     currentPos = myPath[-1]  # current position is last item in list
     nextPos = myPath[-2]  # position after current is penultimate item in list
 
@@ -41,10 +43,11 @@ def getPathAction(self, state, myPath): # take path and extract first move direc
     else: return legalActions[0]  # else just fo the first legal option (stops attempted backward movements)
 
 
-def shortestPath(walls, start, end):
+def shortestPath(walls, start, end, returnOne=False):
     '''
-    SHORTEST PATH FUNCTION
-    returns path1,path2
+    SHORTEST PATH FUNCTION - USING BFS ALGORITHM
+    returns (path1, path2) if returnOne==False
+    returns path1 if returnOne==True
     path1 is shortest path and path2 is second shortest path
     '''
     start = [start[0], start[1]]
@@ -80,7 +83,6 @@ def shortestPath(walls, start, end):
     # calculate alternate route start point for reconstruction
     adjacent = [[end[0] + 1, end[1]], [end[0] - 1, end[1]], [end[0], end[1] + 1], [end[0], end[1] - 1]]
     minoption = None
-
     for option in adjacent:
         if option != predecessors[end[0], end[1]].tolist() and not walls[option[0]][option[1]]:
             if minoption == None: minoption = option  # for first iteration
@@ -94,6 +96,9 @@ def shortestPath(walls, start, end):
         path1.append(n)
         n = predecessors[n[0], n[1]].tolist()
     path1.append(start)
+
+    if returnOne == True: # if only shortest path is needed from function then skip the construction of path2
+        return path1
 
     # we must exit function now if an alternate route could not be found, this is because minoption is None.
     if minoption == None:
@@ -117,61 +122,57 @@ def shortestPath(walls, start, end):
 
 def getUpdatedWalls(state, ghostPositions):
     walls = state.getWalls()
-
-    if ghostPositions == []:
-        return walls
+    if ghostPositions == []:  # if there are no ghost positions to amend to walls data
+        return walls  # return normal wall data
 
     import copy
-    wallList = copy.deepcopy(walls)
+    wallList = copy.deepcopy(walls)  # take a copy of the wall data
 
-    for ghost in ghostPositions:
+    for ghost in ghostPositions:  # for all ghost coordinates passed into function
         x, y = ghost
-        wallList[x][y] = True
-    return wallList
+        wallList[x][y] = True  # modify walls data to place a wall where the ghost is
+    return wallList  # return modified wall data
 
 
-def getFoodList(state):
-    getFoods = state.getFood()
-    positionFood = []
-    for x in getFoods:
-        for y in getFoods[x]:
-            if getFoods[x][y]:
-                positionFood.append((x, y))
-    return positionFood
+def getFoodList(state):  # get food coordinates as a list
+    foods = state.getFood()
+    positionFoods = foods.asList()
+    return positionFoods
 
 
-def getNearestItem(state, walls, positionSelf, positionItems):
-    # walls = state.getWalls()
+def getNearestItem(walls, positionSelf, positionItems):
     distanceItems = []
-    for item in positionItems:
-        path1, path2 = shortestPath(walls=walls, start=positionSelf, end=item)
-        distance = len(path1)
-        distanceItems.append(distance)
-    index = distanceItems.index(min(distanceItems))
+    for item in positionItems:  # list of coordinates for specified item
+        path1 = shortestPath(walls=walls, start=item, end=positionSelf, returnOne=True)
+        distance = len(path1)  # take the length of the shortest path from self to item
+        distanceItems.append(distance)  # produce a list of distances of self from items
+    index = distanceItems.index(min(distanceItems))  # find the index of the item with minimum distance to self
     positionClosestItem = positionItems[index]
-    return positionClosestItem
+    return positionClosestItem  # return coordinates of closest item
 
 
 class team6PacmanAgents(game.Agent):
 
     def pacmanDanger(self, state, pacmanPos, ghostPosns):
-        danger = 'ok'
-        critDangerDist = 3  # minimum is 3, recommended 3 or 4
+        danger = 'ok'  # set danger flag to 'ok' by default
+        critDangerDist = 3  # critical state only when ghost is right next to pacman (one space gap)
         walls = state.getWalls()
 
         # check path distance of ghosts from pacman
         distances = []
-        print ghostPosns
         for ghost in ghostPosns:
-            path1, other = shortestPath(walls=walls, start=ghost, end=pacmanPos)
+            path1 = shortestPath(walls=walls, start=ghost, end=pacmanPos, returnOne=True)
             dist = len(path1)
             distances.append(dist)
 
+        # if not all distances are greater than the critical zone then the pacman is in critical danger
         if not all(i > critDangerDist for i in distances):
             danger = 'critical'  # if ghost in critical zone, flag critical
         return danger
 
     def getAction(self, state):
+        legalActions = state.getLegalActions()
+        myAction = legalActions[0]  # set default behaviour in case myAction is not assigned
 
         # Load ghost information
         numberOfGhosts = len(state.data.agentStates) -1  # state.data.agentStates[agentIndex]
@@ -191,46 +192,46 @@ class team6PacmanAgents(game.Agent):
         posX, posY = state.getPacmanPosition()
         positionPacman = (int(posX), int(posY))
 
-        # find the pacman danger
+        # Set the danger flag for the pacman
         danger = self.pacmanDanger(state, pacmanPos=positionPacman, ghostPosns=positionAngryGhosts)
 
-        # act based on danger
-        walls = state.getWalls()
+        # Act based on danger flag
+        walls = state.getWalls()  # variable for unchanged version of walls data
         newWalls = getUpdatedWalls(state, ghostPositions=positionAngryGhosts)  # amend walls data with ghost pos.s
 
         if danger == 'critical':  # act on critical danger
             speed = 1
             actionVectors = [Actions.directionToVector(a, speed) for a in legalActions]
             newPositions = [(positionPacman[0]+a[0], positionPacman[1]+a[1]) for a in actionVectors]
-            positionClosestAngryGhost = getNearestItem(state, walls, positionPacman, positionAngryGhosts)
+            positionClosestAngryGhost = getNearestItem(walls, positionPacman, positionAngryGhosts)
 
             # Select best actions given the state
             distancesToAngryGhost = [util.manhattanDistance(positionPacman, positionClosestAngryGhost) for positionPacman in newPositions]
             bestScore = max(distancesToAngryGhost)
             bestActions = [action for action, distance in zip(legalActions, distancesToAngryGhost) if distance == bestScore]
-            myAction = bestActions[0]
+
+            randomIndex = int(random.randint(0, len(bestActions)-1))
+            myAction = bestActions[randomIndex]
 
         if danger == 'ok':
             if len(positionScaredGhosts) > 0:
-                positionClosestScaredGhost = getNearestItem(state, newWalls, positionPacman, positionScaredGhosts) # find nearest scared ghost
-                path1, path2 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestScaredGhost)
+                positionClosestScaredGhost = getNearestItem(newWalls, positionPacman, positionScaredGhosts) # find nearest scared ghost
+                path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestScaredGhost, returnOne=True)
                 myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
                 return myAction
 
             positionCapsules = state.getCapsules()
             if len(positionCapsules) > 0:
-                positionClosestCapsule = getNearestItem(state, newWalls, positionPacman, positionCapsules)  # find nearest capsule
-                path1, path2 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestCapsule)
+                positionClosestCapsule = getNearestItem(newWalls, positionPacman, positionCapsules)  # find nearest capsule
+                path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestCapsule, returnOne=True)
                 myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
                 return myAction
 
             # No capsules and no ghosts to chase, so eat food
             positionFoods = getFoodList(state)
-            positionClosestFood = getNearestItem(state, newWalls, positionPacman, positionFoods)  # find nearest food
-            path1, path2 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestFood)
+            positionClosestFood = getNearestItem(newWalls, positionPacman, positionFoods)  # find nearest food
+            path1 = shortestPath(walls=newWalls, start=positionPacman, end=positionClosestFood, returnOne=True)
             myAction = getPathAction(self, state, path1)  # getPathAction and assign to myAction
             return myAction
 
-        if myAction == None:
-            return Directions.STOP  # in case there is a problem assigning an action
         return myAction
