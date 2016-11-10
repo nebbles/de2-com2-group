@@ -106,11 +106,15 @@ def shortestPath(walls, start, end, returnOne=False):
 
     # construct path 2
     n = minoption
+    loopcount = 0
     while n != start:
+        if loopcount > 50:
+            return path1, path1
         if n == start:
             break
         path2.append(n)
         n = predecessors[n[0], n[1]].tolist()
+        loopcount += 1
     path2.append(start)
     path2.insert(0, end)
 
@@ -170,7 +174,7 @@ class team6GhostAgents(Agent):
         capsules = state.getCapsules()
         pathLengths = []
         for caps in capsules:
-            path1, path2 = shortestPath(walls=walls, start=caps, end=positionPacman)
+            path1 = shortestPath(walls=walls, start=caps, end=positionPacman, returnOne=True)
             pathLengths.append(len(path1))
         for length in pathLengths:
             if length < 3:  # distance that ghost starts to back away from pacman
