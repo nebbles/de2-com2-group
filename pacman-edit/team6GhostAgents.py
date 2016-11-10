@@ -79,7 +79,6 @@ def shortestPath(walls, start, end):
     n = end
 
     # calculate alternate route start point for reconstruction
-    n = end
     adjacent = [[end[0] + 1, end[1]], [end[0] - 1, end[1]], [end[0], end[1] + 1], [end[0], end[1] - 1]]
     minoption = None
 
@@ -97,6 +96,11 @@ def shortestPath(walls, start, end):
         n = predecessors[n[0], n[1]].tolist()
     path1.append(start)
 
+    # we must exit function now if an alternate route could not be found, this is because minoption is None.
+    if minoption == None:
+        path2 = path1
+        return path1, path2
+
     # construct path 2
     n = minoption
     while n != start:
@@ -109,7 +113,6 @@ def shortestPath(walls, start, end):
 
     # print 'counts \n', counts  # debug
     # print 'predecessors \n', predecessors  # debug
-
     return path1, path2
 
 
