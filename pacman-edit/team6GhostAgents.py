@@ -106,7 +106,6 @@ def shortestPath(walls, start, end, returnOne=False):
 
     # construct path 2
     n = minoption
-    print n
     while n != start:
         if n == start:
             break
