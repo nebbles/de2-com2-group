@@ -153,7 +153,6 @@ def getNearestItem(walls, positionSelf, positionItems):
 
     index = distanceItems.index(min(distanceItems))  # find the index of the item with minimum distance to self
     positionClosestItem = positionItems[index]
-    print distanceItems
     return positionClosestItem  # return coordinates of closest item
 
 
