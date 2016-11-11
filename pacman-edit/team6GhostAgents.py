@@ -152,7 +152,6 @@ class team6GhostAgents(Agent):
         legalActions = state.getLegalActions(self.index)
         numberOfGhosts = len(state.data.agentStates) -1  # state.data.agentStates[agentIndex]
 
-
         scared = state.getGhostState(self.index).scaredTimer > 0
         shouldRun = False
         if scared: shouldRun = True
@@ -161,13 +160,14 @@ class team6GhostAgents(Agent):
         posX,posY = state.getGhostPosition(self.index)
         positionSelf = (int(posX), int(posY))
 
-        # Get position of other ghost (ghost 2 [or greater] just looks to ghost 1)
-        if self.index == 1:
-            posX, posY = state.getGhostPosition(2)
-            positionOther = (int(posX), int(posY))
-        else:
-            posX, posY = state.getGhostPosition(1)
-            positionOther = (int(posX), int(posY))
+        if numberOfGhosts > 1:
+            # Get position of other ghost (ghost 2 [or greater] just looks to ghost 1)
+            if self.index == 1:
+                posX, posY = state.getGhostPosition(2)
+                positionOther = (int(posX), int(posY))
+            else:
+                posX, posY = state.getGhostPosition(1)
+                positionOther = (int(posX), int(posY))
 
         # Get pacman position
         posX, posY = state.getPacmanPosition()
@@ -197,23 +197,24 @@ class team6GhostAgents(Agent):
             myAction = bestActions[0]
         else:
             path1, path2 = shortestPath(walls=walls,start=positionSelf, end=positionPacman)  # find 2 shortest paths for self
-            pathOther, other = shortestPath(walls=walls, start=positionOther, end=positionPacman)  # find 2 shortest paths of other ghost of two
-
-            stepsCompared = 3
-            similar = False  # set paths are similar flag to False
-            similar = similarPath(pathOther, path1, stepsCompared)
-
             myPath = path1  # set path of self to shortest path
-            if similar:  # if paths of ghost 1 and 2 are similar
-                if len(path1) > len(pathOther):  # if self path is longer than ghost teammate then
-                    myPath = path2  # take path2
-                if len(path1) < len(pathOther):  # if self path is shorter than ghost teammate then
-                    myPath = path1  # take path1 - shortest path
-                if len(path1) == len(pathOther):  # if path length is the same then
-                    if self.index == 2: myPath = path2  # ghost 2 takes its second best route
 
-            if len(path2) > 20:  # if path length is greater than 20
-                myPath = path1
+            if numberOfGhosts > 1:
+                pathOther, other = shortestPath(walls=walls, start=positionOther, end=positionPacman)  # find 2 shortest paths of other ghost of two
+                stepsCompared = 3
+                similar = False  # set paths are similar flag to False
+                similar = similarPath(pathOther, path1, stepsCompared)
+
+                if similar:  # if paths of ghost 1 and 2 are similar
+                    if len(path1) > len(pathOther):  # if self path is longer than ghost teammate then
+                        myPath = path2  # take path2
+                    if len(path1) < len(pathOther):  # if self path is shorter than ghost teammate then
+                        myPath = path1  # take path1 - shortest path
+                    if len(path1) == len(pathOther):  # if path length is the same then
+                        if self.index == 2: myPath = path2  # ghost 2 takes its second best route
+
+                if len(path2) > 20:  # if path length is greater than 20
+                    myPath = path1
 
             myAction = getPathAction(self, state, myPath)
 
