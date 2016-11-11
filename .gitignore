@@ -1,2 +1,4 @@
-# Ignore .pyc files
+# Ignore files with extensions
 *.pyc
+*.iml
+*.xml
