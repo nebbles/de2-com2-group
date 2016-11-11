@@ -5,7 +5,7 @@
 > Kenza Zouitene (@kenzaz)  
 > Ian Keglar (@iankegler)  
 > Bea Lopez (@bealln)  
-> Kyle Ruizheng Zeng**
+> ~~Kyle Ruizheng Zeng~~**
 
 
 DE2-COM2 Group project is based on the game Pac-man. Groups must build an working function for both the Pac-man and the Ghost. Rules for the Pac-man game are as follows:
