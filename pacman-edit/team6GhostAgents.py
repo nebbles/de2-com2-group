@@ -39,7 +39,10 @@ def getPathAction(self, state, myPath): # take path and extract first move direc
     if nextPos == south and Directions.SOUTH in legalActions: return Directions.SOUTH
     if nextPos == east and Directions.EAST in legalActions: return Directions.EAST
     if nextPos == west and Directions.WEST in legalActions: return Directions.WEST
-    else: return legalActions[0]  # else just fo the first legal option (stops attempted backward movements)
+    else:
+        randomIndex = int(random.randint(0, len(legalActions) - 1))
+        myAction = legalActions[randomIndex]
+        return myAction  # else just pick random legal option (stops attempted backward movements)
 
 
 def shortestPath(walls, start, end, returnOne=False):
@@ -147,6 +150,9 @@ class team6GhostAgents(Agent):
 
     def getAction(self, state):
         legalActions = state.getLegalActions(self.index)
+        numberOfGhosts = len(state.data.agentStates) -1  # state.data.agentStates[agentIndex]
+
+
         scared = state.getGhostState(self.index).scaredTimer > 0
         shouldRun = False
         if scared: shouldRun = True
