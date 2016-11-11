@@ -194,9 +194,10 @@ class team6GhostAgents(Agent):
             bestScore = max(distancesToPacman)
             bestActions = [action for action, distance in zip(legalActions, distancesToPacman) if
                            distance == bestScore]
-            myAction = bestActions[0]
+            randomIndex = int(random.randint(0, len(bestActions) - 1))
+            myAction = bestActions[randomIndex]
         else:
-            path1, path2 = shortestPath(walls=walls,start=positionSelf, end=positionPacman)  # find 2 shortest paths for self
+            path1, path2 = shortestPath(walls=walls, start=positionSelf, end=positionPacman)  # find 2 shortest paths for self
             myPath = path1  # set path of self to shortest path
 
             if numberOfGhosts > 1:
